@@ -8,7 +8,7 @@
         "jsx": "react"
     },
     "files": [
-        "app.ts",
-        "agent/agent.tsx"
+        "src/app.ts",
+        "src/agent/agent.tsx"
     ]
 }

@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import { Chat, User, DirectLineOptions } from 'botframework-webchat';
 import { ConversationHeader } from './conversation_header';
 import ConversationState from '../framework/enum/ConversationState';
-
+import { store } from './redux';
 
 export const App = (props: {
     directLine: DirectLineOptions,

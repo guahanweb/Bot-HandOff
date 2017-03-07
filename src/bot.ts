@@ -1,6 +1,7 @@
 import * as builder from 'botbuilder';
 import dialogs from './dialogs/';
 import Handoff from './middleware/handoff';
+import message from './lib/messages';
 import commandsMiddleware from './middleware/commands';
 
 export default class bot_handler {
@@ -22,7 +23,7 @@ export default class bot_handler {
         // replace this function with custom login/verification for agents
         this.isAgent = (session: builder.Session) =>
             session.message.user.name.startsWith("Agent");
-
+        
         this.handoff = new Handoff(this.bot, this.isAgent);
 
         this.SetBotMiddleware();
@@ -31,8 +32,8 @@ export default class bot_handler {
 
     private SetBotMiddleware(){
         this.bot.use(
-            commandsMiddleware(this.handoff),
-            this.handoff.routingMiddleware(),
+            // commandsMiddleware(this.handoff),
+            this.handoff.routingMiddleware()
             /* other bot middlware should probably go here */
         );
     }

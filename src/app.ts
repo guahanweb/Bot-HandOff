@@ -4,7 +4,6 @@ import config from './config/';
 
 const app = express();
 const bot = new BotHandler(config('master'));
-
 const server = config('server');
 
 // Setup Express Server

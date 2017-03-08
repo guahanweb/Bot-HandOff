@@ -1,4 +1,5 @@
 import * as builder from 'botbuilder';
+import ConversationState from '../framework/enum/ConversationState';
 
 interface CustomerQueueItem {
     created: number,
@@ -8,6 +9,7 @@ interface CustomerQueueItem {
     agentAddress: builder.IAddress,
     agentSession: builder.Session,
     messages: Function[],
+    state: ConversationState,
     deferred: Object
 }
 
@@ -17,6 +19,28 @@ class Queue {
     constructor() {
         this.queue = [];
     }
+
+    getState(customerConversationId : string){
+        var item = this.queue.filter(x => {
+            return customerConversationId === x.customerConversationId;
+        });
+
+        return item[0].state;
+    }
+
+    setState(customerConversationId : string, state : ConversationState){
+        var item = this.queue.filter(x => {
+            return customerConversationId === x.customerConversationId;
+        });
+
+        if(item){
+            item[0].state = state;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     add(customerConversationId: string, message: Function, customerAddress: builder.IAddress) {
         let item;
@@ -34,6 +58,7 @@ class Queue {
             agentConversationId: null,
             agentAddress: null,
             messages: [message],
+            state: ConversationState.Bot,
             deferred: null
         };
         this.queue.push(item);
@@ -83,7 +108,7 @@ class Queue {
 
     getPendingCustomers() {
         return this.queue.filter((item) => {
-            return item.agentConversationId === null;
+            return item.state === ConversationState.Waiting;
         });
     }
 }

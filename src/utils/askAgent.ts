@@ -1,5 +1,6 @@
 import queue from '../lib/queue';
 import * as builder from 'botbuilder';
+import ConversationState from '../framework/enum/ConversationState';
 
 /**
  * Specific pre-built suggestion cards that need to be sent to the agent for response.
@@ -15,6 +16,10 @@ export default function askAgent(bot: builder.UniversalBot, session, suggestion:
         let conversation = queue.get(customerConversationId);
 
         queue.add(customerConversationId, suggestion, null); // add to this customer queue
+
+        if(queue.getState(customerConversationId) === ConversationState.Bot){
+            queue.setState(customerConversationId, ConversationState.Waiting);
+        }
         queue.await(customerConversationId, resolve, reject); // update the pending promise for resolution
 
         if (conversation.agentAddress !== null) {

@@ -31,8 +31,8 @@ export default class bot_handler {
         this.handoff = new Handoff(this.bot, this.isAgent);
         
         this.dialog = this.InitializeLuis(config.luis);
-        this.SetBotMiddleware(this.bot, this.handoff);
-        this.SetBotDialog(this.bot, this.dialog);
+        this.SetBotMiddleware();
+        this.SetBotDialog();
     }
 
     private InitializeLuis(model){

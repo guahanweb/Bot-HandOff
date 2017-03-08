@@ -11,7 +11,7 @@ const config = {
 
     master : {
         app_id: process.env.MICROSOFT_APP_ID || '???',
-        app_pw: process.env.MICROSOFT_APP_PASSWORD || '???'
+        app_pw: process.env.MICROSOFT_APP_PASSWORD || '???',
         luis : {
             app_id: '???',
             sub_key: '???',

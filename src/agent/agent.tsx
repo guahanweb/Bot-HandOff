@@ -43,8 +43,8 @@ const pendingCustomers = (props: ChatProps) =>
                 name: 'connect_agent',
                 value: { customerConversationId: customer.customerConversationId }
             } as EventActivity)
-            .do(response => console.log("postActivity response", response))
-            .map(_ => newCustomer);
+                .do(response => console.log("postActivity response", response))
+                .map(_ => newCustomer);
         });
 
 interface Customer {
@@ -68,7 +68,6 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
 
     componentDidMount() {
         pendingCustomers(this.props).subscribe(customer => {
-            console.log("rxjs loop", customer.customerInfo.name, this.state);
             let state: any = { customers: [...this.state.customers, customer] };
 
             if (this.state.customers.length == 0) {
@@ -80,37 +79,38 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
 
     handleConversationChange(id) {
         this.setState({ selectedCustomer: this.state.customers.find(customer => customer.customerInfo.id === id) });
-        console.log("handleConversationChange", id, this.state)
     }
 
     render() {
-        console.log("AgentDashboard props", this.props, this.state);
         const conversationHeaders = this.state.customers.map(customer =>
-            <div className={'conversation-header ' + (this.state.selectedCustomer.customerInfo.id === customer.customerInfo.id ? 'selected' : '')}
-                onClick={ () => this.handleConversationChange(customer.customerInfo.id) }
-                key={customer.customerInfo.id}>{customer.customerInfo.name}
-            </div>
-        )
-        let selectedCustomer = this.state.selectedCustomer;
-        const webChatInstances  = this.state.customers.map(customer =>
             <div
-                style={{visibility: customer === selectedCustomer ? 'visible':'hidden'}} 
+                className={'conversation-header ' + (this.state.selectedCustomer.customerInfo.id === customer.customerInfo.id ? 'selected' : '')}
+                onClick={() => this.handleConversationChange(customer.customerInfo.id)}
                 key={customer.customerInfo.id}
             >
-            {customer.webChatInstance}
+            {customer.customerInfo.name}
+            </div>
+        )
+        const selectedCustomer = this.state.selectedCustomer;
+        const webChatInstances = this.state.customers.map(customer =>
+            <div
+                style={{ visibility: customer === selectedCustomer ? 'visible' : 'hidden' }}
+                key={customer.customerInfo.id}
+            >
+                {customer.webChatInstance}
             </div>
         )
 
-        console.log("webChatInstances", webChatInstances);
-        return <div className='agent-dashboard'>
-
-            <div className='left-panel'>
-                {conversationHeaders}
+        return (
+            <div className='agent-dashboard'>
+                <div className='left-panel'>
+                    {conversationHeaders}
+                </div>
+                <div className='right-panel'>
+                    {webChatInstances}
+                </div>
             </div>
-            <div className='right-panel'>
-                {webChatInstances}
-            </div>
-        </div>
+        );
     }
 
 }

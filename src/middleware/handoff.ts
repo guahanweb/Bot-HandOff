@@ -41,6 +41,7 @@ export default class Handoff {
                     this.routeMessage(session, next);
                 } else if (session.message.type === 'event') {
                     let event = session.message as any;
+                    console.log("routingMiddleware got event", event);
                     if (event.name === 'connect_agent') {
                         let agentAddress = session.message.address.channelId + '/' + session.message.address.conversation.id;
                         let customerAddress = session.message.text;

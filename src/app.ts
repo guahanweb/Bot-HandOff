@@ -13,7 +13,9 @@ app.listen(server.port, server.host, () => {
 });
 
 app.get('/pending', (req, res) => {
-    res.send(queue.getPendingCustomers());
+    res.send({
+        customers: queue.getPendingCustomers()
+    });
 });
 
 app.post('/api/messages', bot.getConnector().listen());

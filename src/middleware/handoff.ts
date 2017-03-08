@@ -22,22 +22,18 @@ export default class Handoff {
             botbuilder: (session: builder.Session, next: Function) => {
                 // Pass incoming messages to routing method
                 if (session.message.type === 'message') {
-                    if (this.isAgent(session)) {
+                    this.routeMessage(session, next);
+                } else if (session.message.type === 'event') {
+                    let event = session.message as any;
+                    if (event.name === 'connect_agent') {
                         let agentAddress = session.message.address.channelId + '/' + session.message.address.conversation.id;
                         let customerAddress = session.message.text;
 
-                        if (/^directline.*/.test(customerAddress)) {
-                            console.log('found connection request', customerAddress);
-                            queue.update(customerAddress, agentAddress, session.message.address);
-                            queue.get(customerAddress).messages.forEach((msg) => {
-                                session.send(msg);
-                            });
-                            return;
-                        }
+                        queue.update(event.value.customerConversationId, agentAddress, session.message.address);
+                        queue.get(customerAddress).messages.forEach((msg) => {
+                            session.send(msg);
+                        });
                     }
-
-                    this.routeMessage(session, next);
-                } else if (session.message.type === 'event') {
                     // the above logic will need to move here when the UI sends a real event payload
                 }
             },
@@ -49,6 +45,30 @@ export default class Handoff {
     }
 
     private routeMessage(
+        session: builder.Session,
+        next: Function
+    ) {
+        if (this.isAgent(session)) {
+            // todo
+        } else {
+            // customer
+            let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
+            queue.add(customerConversationId, session.message.text);
+
+            let conversation = queue.get(customerConversationId);
+            if (conversation.agentAddress !== null) {
+                // send to agent
+                this.bot.send(
+                    new builder.Message()
+                        .address(conversation.agentAddress)
+                        .text(session.message.text)
+                );
+            }
+        }
+        return next();
+    }
+
+    private old_routeMessage(
         session: builder.Session,
         next: Function
     ) {

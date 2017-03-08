@@ -51,14 +51,18 @@ export default class bot_handler {
     private SetBotDialog(){
         let bot = this.bot;
         this.bot.dialog('/', (session, args, next) => {
-            let suggestion = 'BOT WRAPPER: ' + session.message.text;
-            askAgent(bot, session, suggestion)
-                .then((answer) => {
-                    session.send(answer);
-                }, (err) => {
-                    session.send(err);
-                });
-            // session.send('Echo ' + session.message.text);
+            if (this.isAgent(session)) {
+
+            } else {
+                let suggestion = 'BOT WRAPPER: ' + session.message.text;
+                askAgent(bot, session, suggestion)
+                    .then((answer) => {
+                        session.send(answer);
+                    }, (err) => {
+                        session.send(err);
+                    });
+                // session.send('Echo ' + session.message.text);
+            }
         });
     }
 

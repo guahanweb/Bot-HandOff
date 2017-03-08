@@ -1,12 +1,19 @@
 import * as express from 'express';
 import BotHandler from './bot';
+import queue from './lib/queue';
+import config from './config/';
 
 const app = express();
-const bot = new BotHandler();
+const bot = new BotHandler(config('master'));
+const server = config('server');
 
 // Setup Express Server
-app.listen(process.env.port || process.env.PORT || 3978, '::', () => {
-    console.log('Server Up');
+app.listen(server.port, server.host, () => {
+    console.log('Server running at', server.host+server.port);
+});
+
+app.get('/pending', (req, res) => {
+    res.send(queue.getPendingCustomers());
 });
 
 app.post('/api/messages', bot.getConnector().listen());

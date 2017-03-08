@@ -3,6 +3,7 @@ import Handoff from './middleware/handoff';
 import message from './lib/messages';
 import commandsMiddleware from './middleware/commands';
 
+import askAgent from './utils/askAgent';
 import accountDialog from './dialogs/account';
 import fantasyDialog from './dialogs/fantasy';
 
@@ -73,9 +74,20 @@ export default class bot_handler {
 
     private SetCustomerDialogs(){
         this.bot.dialog('/customer', this.dialog);
+
         accountDialog(this.bot, this.dialog);
-        fantasyDialog(this.dialog);
-        this.dialog.onDefault(builder.DialogAction.send("I'm sorry. I didn't understand."));
+        fantasyDialog(this.bot, this.dialog);
+
+        var bot = this.bot;
+        this.dialog.onDefault(function(session, args, next){
+            var msg = session.message.text;
+            askAgent(bot, session, function(session){return new builder.Message(session).text(msg);}).then(response => {
+                session.send(response);
+            }).catch(err => {
+                session.send(err);
+            });
+        });
+
     }
 
     public getConnector(){

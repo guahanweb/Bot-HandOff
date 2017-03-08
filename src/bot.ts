@@ -3,12 +3,8 @@ import Handoff from './middleware/handoff';
 import message from './lib/messages';
 import commandsMiddleware from './middleware/commands';
 
-<<<<<<< HEAD
 import Promise = require('bluebird');
 import queue from './lib/queue';
-=======
-import entryDialogue from './dialogs/entry';
->>>>>>> master
 
 export default class bot_handler {
 
@@ -44,22 +40,14 @@ export default class bot_handler {
         return new builder.IntentDialog({ recognizers: [recognizer] });
     }
 
-<<<<<<< HEAD
     private SetBotMiddleware(){
         this.bot.use(
             // commandsMiddleware(this.handoff),
             this.handoff.routingMiddleware()
-=======
-    private SetBotMiddleware(bot, handoff){
-        bot.use(
-            //commandsMiddleware(handoff),
-            //handoff.routingMiddleware(),
->>>>>>> master
             /* other bot middlware should probably go here */
         );
     }
 
-<<<<<<< HEAD
     private SetBotDialog(){
         let bot = this.bot;
         this.bot.dialog('/', (session, args, next) => {
@@ -72,13 +60,6 @@ export default class bot_handler {
                 });
             // session.send('Echo ' + session.message.text);
         });
-=======
-    private SetBotDialog(bot, dialog){
-        bot.dialog('/', dialog);
-
-        entryDialogue(dialog);
-        dialog.onDefault(builder.DialogAction.send("I'm sorry I didn't understand."));
->>>>>>> master
     }
 
     public getConnector(){

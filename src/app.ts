@@ -4,8 +4,10 @@ import queue from './lib/queue';
 import config from './config/';
 
 const app = express();
+
 const bot = new BotHandler(config('master'));
 const server = config('server');
+
 
 // Setup Express Server
 app.listen(server.port, server.host, () => {

@@ -3,7 +3,12 @@ import Handoff from './middleware/handoff';
 import message from './lib/messages';
 import commandsMiddleware from './middleware/commands';
 
+import askAgent from './utils/askAgent';
+import accountDialog from './dialogs/account';
+import fantasyDialog from './dialogs/fantasy';
+
 import Promise = require('bluebird');
+
 import queue from './lib/queue';
 
 export default class bot_handler {
@@ -50,20 +55,39 @@ export default class bot_handler {
 
     private SetBotDialog(){
         let bot = this.bot;
+        this.SetCustomerDialogs();
+
         this.bot.dialog('/', (session, args, next) => {
             if (this.isAgent(session)) {
-
+                let agentConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
+                let customer = queue.getCustomerByAgent(agentConversationId);
+                bot.send(
+                    new builder.Message()
+                        .address(customer.customerAddress)
+                        .text(session.message.text)
+                )
             } else {
-                let suggestion = 'BOT WRAPPER: ' + session.message.text;
-                askAgent(bot, session, suggestion)
-                    .then((answer) => {
-                        session.send(answer);
-                    }, (err) => {
-                        session.send(err);
-                    });
-                // session.send('Echo ' + session.message.text);
+                session.beginDialog('/customer');
             }
         });
+    }
+
+    private SetCustomerDialogs(){
+        this.bot.dialog('/customer', this.dialog);
+
+        accountDialog(this.bot, this.dialog);
+        fantasyDialog(this.bot, this.dialog);
+
+        var bot = this.bot;
+        this.dialog.onDefault(function(session, args, next){
+            var msg = session.message.text;
+            askAgent(bot, session, function(session){return new builder.Message(session).text(msg);}).then(response => {
+                session.send(response);
+            }).catch(err => {
+                session.send(err);
+            });
+        });
+
     }
 
     public getConnector(){
@@ -75,31 +99,4 @@ export default class bot_handler {
     }
 }
 
-/**
- * Specific pre-built suggestion cards that need to be sent to the agent for response.
- * Additionally, these cards will be queued up in case we don't yet have an agent connected.
- * 
- * @param bot
- * @param session 
- * @param suggestion The card or suggested response for the agent to approve/deny
- */
-function askAgent(bot: builder.UniversalBot, session, suggestion: string) {
-    return new Promise((resolve, reject) => {
-        let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
-        let conversation = queue.get(customerConversationId);
 
-        queue.add(customerConversationId, suggestion); // add to this customer queue
-        queue.await(customerConversationId, resolve, reject); // update the pending promise for resolution
-
-        if (conversation.agentAddress !== null) {
-            // send to agent
-            bot.send(
-                new builder.Message()
-                    .address(conversation.agentAddress)
-                    .text(suggestion)
-            );
-        }
-        
-        // agent will get queued text whenever they connect
-    });
-}

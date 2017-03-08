@@ -12,7 +12,7 @@ const config = {
         app_pw: process.env.MICROSOFT_APP_PASSWORD || '???',
         luis : {
             app_id: '???',
-            sub_key: '???'
+            sub_key: '???',
             url: process.env.LUIS_URL,
         }
     }

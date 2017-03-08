@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Chat, ChatProps, User, DirectLineOptions, DirectLine, Activity, EventActivity } from 'botframework-webchat';
-import { ConversationHeader } from './conversation_header';
 import ConversationState from '../framework/enum/ConversationState';
 import { store } from './redux';
 

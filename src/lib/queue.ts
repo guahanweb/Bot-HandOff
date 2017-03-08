@@ -1,8 +1,12 @@
+import * as builder from 'botbuilder';
+
 interface CustomerQueueItem {
     created: number,
     customerConversationId: string,
     agentConversationId: string,
-    messages: string[]
+    agentAddress: builder.IAddress,
+    messages: string[],
+    deferred: Object
 }
 
 class Queue {
@@ -25,17 +29,20 @@ class Queue {
             created: Date.now(),
             customerConversationId: customerConversationId,
             agentConversationId: null,
-            messages: [message]
+            agentAddress: null,
+            messages: [message],
+            deferred: null
         };
 
         this.queue.push(item);
         return item;
     }
 
-    update(customerConversationId: string, agentConversationId: string) {
+    update(customerConversationId: string, agentConversationId: string, agentAddress: builder.IAddress) {
         this.queue.map((item) => {
             if (item.customerConversationId === customerConversationId) {
                 item.agentConversationId = agentConversationId;
+                item.agentAddress = agentAddress;
             }
             return item;
         });
@@ -48,6 +55,18 @@ class Queue {
             }
         }
         return null;
+    }
+
+    await(customerConversationId: string, resolve: Function, reject: Function) {
+        this.queue.map((item) => {
+            if (item.customerConversationId === customerConversationId) {
+                item.deferred = {
+                    resolve: resolve,
+                    reject: reject
+                };
+            }
+            return item;
+        });
     }
 
     getPendingCustomers() {

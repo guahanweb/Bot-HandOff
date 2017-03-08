@@ -15,6 +15,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "bluebird": "^3.5.0",
     "botbuilder": "^3.7.0",
     "botframework-webchat": "^0.9.1",
     "express": "^4.14.0",

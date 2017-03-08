@@ -23,13 +23,12 @@ export default class Handoff {
                 // Pass incoming messages to routing method
                 if (session.message.type === 'message') {
                     if (this.isAgent(session)) {
-                        console.log('inside agent session:', session.message.text);
                         let agentAddress = session.message.address.channelId + '/' + session.message.address.conversation.id;
                         let customerAddress = session.message.text;
 
                         if (/^directline.*/.test(customerAddress)) {
                             console.log('found connection request', customerAddress);
-                            queue.update(customerAddress, agentAddress);
+                            queue.update(customerAddress, agentAddress, session.message.address);
                             queue.get(customerAddress).messages.forEach((msg) => {
                                 session.send(msg);
                             });
@@ -56,8 +55,19 @@ export default class Handoff {
         if (this.isAgent(session)) {
             this.routeAgentMessage(session)
         } else {
-            let address = session.message.address.channelId + '/' + session.message.address.conversation.id;
-            queue.add(address, session.message.text);
+            let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
+            queue.add(customerConversationId, session.message.text);
+
+            let conversation = queue.get(customerConversationId);
+            if (conversation.agentAddress !== null) {
+                // send to agent
+                this.bot.send(
+                    new builder.Message()
+                        .address(conversation.agentAddress)
+                        .text(session.message.text)
+                );
+            }
+
             this.routeCustomerMessage(session, next);
         }
     }

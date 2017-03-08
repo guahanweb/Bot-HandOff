@@ -6,7 +6,8 @@ interface CustomerQueueItem {
     customerAddress: builder.IAddress,
     agentConversationId: string,
     agentAddress: builder.IAddress,
-    messages: string[],
+    agentSession: builder.Session,
+    messages: Function[],
     deferred: Object
 }
 
@@ -17,7 +18,7 @@ class Queue {
         this.queue = [];
     }
 
-    add(customerConversationId: string, message: string, customerAddress: builder.IAddress) {
+    add(customerConversationId: string, message: Function, customerAddress: builder.IAddress) {
         let item;
         for (let i = 0; i < this.queue.length; i++) {
             if (this.queue[i].customerConversationId === customerConversationId) {
@@ -35,16 +36,16 @@ class Queue {
             messages: [message],
             deferred: null
         };
-
         this.queue.push(item);
         return item;
     }
 
-    update(customerConversationId: string, agentConversationId: string, agentAddress: builder.IAddress) {
+    update(customerConversationId: string, agentConversationId: string, agentAddress: builder.IAddress, agentSession : builder.Session) {
         this.queue.map((item) => {
             if (item.customerConversationId === customerConversationId) {
                 item.agentConversationId = agentConversationId;
                 item.agentAddress = agentAddress;
+                item.agentSession = agentSession;
             }
             return item;
         });

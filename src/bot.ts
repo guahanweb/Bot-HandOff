@@ -52,7 +52,13 @@ export default class bot_handler {
         let bot = this.bot;
         this.bot.dialog('/', (session, args, next) => {
             if (this.isAgent(session)) {
-
+                let agentConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
+                let customer = queue.getCustomerByAgent(agentConversationId);
+                bot.send(
+                    new builder.Message()
+                        .address(customer.customerAddress)
+                        .text(session.message.text)
+                )
             } else {
                 let suggestion = 'BOT WRAPPER: ' + session.message.text;
                 askAgent(bot, session, suggestion)
@@ -88,7 +94,7 @@ function askAgent(bot: builder.UniversalBot, session, suggestion: string) {
         let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
         let conversation = queue.get(customerConversationId);
 
-        queue.add(customerConversationId, suggestion); // add to this customer queue
+        queue.add(customerConversationId, suggestion, null); // add to this customer queue
         queue.await(customerConversationId, resolve, reject); // update the pending promise for resolution
 
         if (conversation.agentAddress !== null) {

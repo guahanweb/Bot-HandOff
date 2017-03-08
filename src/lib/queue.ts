@@ -3,6 +3,7 @@ import * as builder from 'botbuilder';
 interface CustomerQueueItem {
     created: number,
     customerConversationId: string,
+    customerAddress: builder.IAddress,
     agentConversationId: string,
     agentAddress: builder.IAddress,
     messages: string[],
@@ -16,7 +17,7 @@ class Queue {
         this.queue = [];
     }
 
-    add(customerConversationId: string, message: string) {
+    add(customerConversationId: string, message: string, customerAddress: builder.IAddress) {
         let item;
         for (let i = 0; i < this.queue.length; i++) {
             if (this.queue[i].customerConversationId === customerConversationId) {
@@ -28,6 +29,7 @@ class Queue {
         item = {
             created: Date.now(),
             customerConversationId: customerConversationId,
+            customerAddress: customerAddress,
             agentConversationId: null,
             agentAddress: null,
             messages: [message],
@@ -55,6 +57,15 @@ class Queue {
             }
         }
         return null;
+    }
+
+    getCustomerByAgent(agentConversationId: string) {
+        for (let i = 0; i < this.queue.length; i++) {
+            if (this.queue[i].agentConversationId === agentConversationId) {
+                return this.queue[i];
+            }
+        }
+        return null;        
     }
 
     await(customerConversationId: string, resolve: Function, reject: Function) {

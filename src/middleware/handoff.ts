@@ -49,11 +49,11 @@ export default class Handoff {
         next: Function
     ) {
         if (this.isAgent(session)) {
-            // todo
+            // nothing to do
         } else {
             // customer
             let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
-            queue.add(customerConversationId, session.message.text);
+            queue.add(customerConversationId, session.message.text, session.message.address);
 
             let conversation = queue.get(customerConversationId);
             if (conversation.agentAddress !== null) {
@@ -76,7 +76,7 @@ export default class Handoff {
             this.routeAgentMessage(session)
         } else {
             let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
-            queue.add(customerConversationId, session.message.text);
+            queue.add(customerConversationId, session.message.text, null);
 
             let conversation = queue.get(customerConversationId);
             if (conversation.agentAddress !== null) {

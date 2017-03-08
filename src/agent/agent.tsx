@@ -1,49 +1,116 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { Chat, User, DirectLineOptions } from 'botframework-webchat';
+import { Chat, ChatProps, User, DirectLineOptions, DirectLine, Activity, EventActivity } from 'botframework-webchat';
 import { ConversationHeader } from './conversation_header';
 import ConversationState from '../framework/enum/ConversationState';
 import { store } from './redux';
 
-export const App = (props: {
-    directLine: DirectLineOptions,
-    user: User,
-    bot: User
-}, container: HTMLElement) => {
+import { Observable } from 'rxjs';
+
+export const App = (props: ChatProps, container: HTMLElement) => {
     ReactDOM.render(React.createElement(AgentDashboard, props), container);
 }
 
-const AgentDashboard = (props: {
-    directLine: DirectLineOptions,
-    user: User,
-    bot: User
-}) => {
+type customerAddress = any;
 
-    let conversations =
-        [{ user: { id: '123', name: "Bill" }, conversationState: ConversationState.Bot, agent:null},
-        { user: { id: '345', name: "Ana" }, conversationState: ConversationState.Waiting, agent:null},
-        { user: { id: '444', name: "Garth" }, conversationState: ConversationState.Agent, agent: { id: 'AgentJoe', name: "AgentJoe" } },
-        { user: { id: '4442', name: "Jane" }, conversationState: ConversationState.Agent, agent: { id: 'AgentHannah', name: "AgentHannah" } }];
+interface PendingResponse {
+    customers: customerAddress[];
+}
 
-    let conversationHeaders = [];
-    conversations.forEach(conversation => {
-        conversationHeaders.push(<ConversationHeader user={conversation.user}
-         conversationState={conversation.conversationState} 
-         key={conversation.user.id}
-        agent={conversation.agent}/>)
-    })
+const pendingCustomers = (props: ChatProps) =>
+    Observable.interval(3 * 1000)
+        .flatMap(_ => Observable.ajax.get("/pending"))
+        .map(ajaxResponse => ajaxResponse.response as PendingResponse)
+        .map(pendingResponse => pendingResponse.customers)
+        .flatMap(customers => Observable.from(customers))
+        .distinct(customer => customer.customerConversationId)
+        .flatMap(customer => {
+            const dl = new DirectLine(props.directLine);
 
-    return <div className='agent-dashboard'>
+            const newCustomer = {
+                customerInfo: customer.customerAddress.user,
+                webChatInstance: <Chat
+                    key={customer.customerAddress.user.id}
+                    botConnection={dl}
+                    user={props.user}
+                    bot={props.bot}
+                />
+            } as Customer;
 
-        <div className='left-panel'>
-            {conversationHeaders}
+            return dl.postActivity({
+                type: 'event',
+                from: props.user,
+                name: 'connect_agent',
+                value: { customerConversationId: customer.customerConversationId }
+            } as EventActivity)
+            .do(response => console.log("postActivity response", response))
+            .map(_ => newCustomer);
+        });
+
+interface Customer {
+    customerInfo: any,
+    webChatInstance: JSX.Element
+}
+
+interface AgentState {
+    customers: Customer[],
+    selectedCustomer: Customer
+}
+
+class AgentDashboard extends React.Component<ChatProps, AgentState> {
+    constructor(props: ChatProps) {
+        super(props);
+        this.state = {
+            customers: [] as Customer[],
+            selectedCustomer: null
+        } as AgentState;
+    }
+
+    componentDidMount() {
+        pendingCustomers(this.props).subscribe(customer => {
+            console.log("rxjs loop", customer.customerInfo.name, this.state);
+            let state: any = { customers: [...this.state.customers, customer] };
+
+            if (this.state.customers.length == 0) {
+                state.selectedCustomer = customer;
+            }
+            this.setState(state);
+        });
+    }
+
+    handleConversationChange(id) {
+        this.setState({ selectedCustomer: this.state.customers.find(customer => customer.customerInfo.id === id) });
+        console.log("handleConversationChange", id, this.state)
+    }
+
+    render() {
+        console.log("AgentDashboard props", this.props, this.state);
+        const conversationHeaders = this.state.customers.map(customer =>
+            <div className={'conversation-header ' + (this.state.selectedCustomer.customerInfo.id === customer.customerInfo.id ? 'selected' : '')}
+                onClick={ () => this.handleConversationChange(customer.customerInfo.id) }
+                key={customer.customerInfo.id}>{customer.customerInfo.name}
+            </div>
+        )
+        let selectedCustomer = this.state.selectedCustomer;
+        const webChatInstances  = this.state.customers.map(customer =>
+            <div
+                style={{visibility: customer === selectedCustomer ? 'visible':'hidden'}} 
+                key={customer.customerInfo.id}
+            >
+            {customer.webChatInstance}
+            </div>
+        )
+
+        console.log("webChatInstances", webChatInstances);
+        return <div className='agent-dashboard'>
+
+            <div className='left-panel'>
+                {conversationHeaders}
+            </div>
+            <div className='right-panel'>
+                {webChatInstances}
+            </div>
         </div>
-        <div className='right-panel'>
-            <Chat
-                directLine={props.directLine}
-                user={props.user}
-                bot={props.bot}
-            />
-        </div>
-    </div>;
+    }
+
 }

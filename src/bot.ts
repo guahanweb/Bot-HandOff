@@ -99,7 +99,7 @@ export default class bot_handler {
 
         var bot = this.bot;
         this.dialog.onDefault(function(session, args, next){
-            var msg = new builder.Message().text(session.message.text);
+            var msg = new builder.Message().text('[BOT] no suggestions available');
             askAgent(bot, session, msg).then(response => {
                 session.send(response);
             }).catch(err => {

@@ -8,6 +8,7 @@ import askAgent from './utils/askAgent';
 import accountDialog from './dialogs/account';
 import fantasyDialog from './dialogs/fantasy';
 import greetingDialog from './dialogs/greeting';
+import ConversationState from './framework/enum/ConversationState';
 
 import Promise = require('bluebird');
 
@@ -46,11 +47,12 @@ export default class bot_handler {
                 let agentAddress = ev.address.channelId + '/' + ev.address.conversation.id;
                 let customerAddress = ev.value.customerConversationId;
                 queue.update(customerAddress, agentAddress, ev.address);
-                queue.get(customerAddress).messages.forEach((msg) => {
-                    this.bot.send(
-                        msg.address(ev.address)
-                    );
+
+                let allMsgs: builder.IMessage[] = queue.get(customerAddress).messages.map((item) => {
+                    return item.address(ev.address).toMessage();
                 });
+                this.bot.send(allMsgs);
+                queue.setState(customerAddress, ConversationState.Agent);
             }
         });
     }
@@ -83,7 +85,7 @@ export default class bot_handler {
                         .text(session.message.text)
                 )
             } else {
-                session.beginDialog('/customer');
+                session.replaceDialog('/customer');
             }
         });
     }
@@ -97,7 +99,7 @@ export default class bot_handler {
 
         var bot = this.bot;
         this.dialog.onDefault(function(session, args, next){
-            var msg = new builder.Message().text(session.message.text);
+            var msg = new builder.Message().text('[BOT] no suggestions available');
             askAgent(bot, session, msg).then(response => {
                 session.send(response);
             }).catch(err => {

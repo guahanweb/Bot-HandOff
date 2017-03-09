@@ -20,6 +20,12 @@ app.get('/pending', (req, res) => {
     });
 });
 
+app.get('/conversations', (req, res) => {
+    res.send({
+        conversations: queue.getAllConversations()
+    });
+});
+
 app.post('/api/messages', bot.getConnector().listen());
 
 // Create endpoint for agent / call center

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Chat, ChatProps, User, DirectLineOptions, DirectLine, Activity, EventActivity } from 'botframework-webchat';
-import { ConversationHeader } from './conversation_header';
 import ConversationState from '../framework/enum/ConversationState';
 import { store } from './redux';
 
@@ -17,8 +16,8 @@ interface PendingResponse {
     customers: customerAddress[];
 }
 
-const pendingCustomers = (props: ChatProps) =>
-    Observable.interval(3 * 1000)
+const pendingConversation$ = (props: ChatProps) =>
+    Observable.interval(1 * 1000)
         .flatMap(_ => Observable.ajax.get("/pending"))
         .map(ajaxResponse => ajaxResponse.response as PendingResponse)
         .map(pendingResponse => pendingResponse.customers)
@@ -27,7 +26,7 @@ const pendingCustomers = (props: ChatProps) =>
         .flatMap(customer => {
             const dl = new DirectLine(props.directLine);
 
-            const newCustomer = {
+            const conversation = {
                 customerInfo: customer.customerAddress.user,
                 webChatInstance: <Chat
                     key={customer.customerAddress.user.id}
@@ -35,7 +34,7 @@ const pendingCustomers = (props: ChatProps) =>
                     user={props.user}
                     bot={props.bot}
                 />
-            } as Customer;
+            } as Conversation;
 
             return dl.postActivity({
                 type: 'event',
@@ -44,33 +43,78 @@ const pendingCustomers = (props: ChatProps) =>
                 value: { customerConversationId: customer.customerConversationId }
             } as EventActivity)
                 .do(response => console.log("postActivity response", response))
-                .map(_ => newCustomer);
+                .map(_ => conversation);
         });
 
-interface Customer {
+interface Conversation {
     customerInfo: any,
     webChatInstance: JSX.Element
 }
 
 interface AgentState {
-    customers: Customer[],
-    selectedCustomer: Customer
+    conversations: Conversation[],
+    selectedConversation: Conversation
 }
+
+const ConversationHeaders = (props: {
+    conversations: Conversation[],
+    selectedConversation: Conversation,
+    handleConversationChange: (string) => void
+}) =>
+    <div className='left-panel'>{
+        props.conversations.map(conversation =>
+            <ConversationHeader conversation={ conversation } selected={ conversation == props.selectedConversation } handleConversationChange={ props.handleConversationChange }/>
+        )
+    }</div>
+
+const ConversationHeader = (props: {
+    conversation: Conversation,
+    selected: boolean,
+    handleConversationChange: (string) => void
+}) =>
+    <div
+        className={ 'conversation-header ' + (props.selected ? 'selected' : '') }
+        onClick={ () => props.handleConversationChange(props.conversation.customerInfo.id) }
+        key={ props.conversation.customerInfo.id }
+    >
+        { props.conversation.customerInfo.name }
+    </div>;
+
+const WebChat = (props: {
+    conversation: Conversation,
+    selected: boolean
+}) =>
+    <div>
+        style={ { visibility: props.selected ? 'visible' : 'hidden' } }
+        key={ props.conversation.customerInfo.id }
+    >
+        { props.conversation.webChatInstance }
+    </div>;
+
+const WebChats = (props: {
+    conversation: Conversation[],
+    selectedConversation: Conversation
+}) =>
+    <div className='right-panel'>{
+        props.conversation.map(conversation =>
+            <WebChat conversation={ conversation } selected={ conversation == props.selectedConversation } />
+        )
+    }</div>;
 
 class AgentDashboard extends React.Component<ChatProps, AgentState> {
     constructor(props: ChatProps) {
         super(props);
         this.state = {
-            customers: [] as Customer[],
-            selectedCustomer: null
+            conversations: [] as Conversation[],
+            selectedConversation: null
         } as AgentState;
     }
 
     componentDidMount() {
-        pendingCustomers(this.props).subscribe(customer => {
-            let state: any = { customers: [...this.state.customers, customer] };
+        pendingConversation$(this.props).subscribe(customer => {
+            let state: any = { customers: [...this.state.conversations, customer] };
 
-            if (this.state.customers.length == 0) {
+            if (this.state.conversations.length == 0) {
                 state.selectedCustomer = customer;
             }
             this.setState(state);
@@ -78,37 +122,14 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
     }
 
     handleConversationChange(id) {
-        this.setState({ selectedCustomer: this.state.customers.find(customer => customer.customerInfo.id === id) });
+        this.setState({ selectedConversation: this.state.conversations.find(customer => customer.customerInfo.id === id) });
     }
 
     render() {
-        const conversationHeaders = this.state.customers.map(customer =>
-            <div
-                className={'conversation-header ' + (this.state.selectedCustomer.customerInfo.id === customer.customerInfo.id ? 'selected' : '')}
-                onClick={() => this.handleConversationChange(customer.customerInfo.id)}
-                key={customer.customerInfo.id}
-            >
-            {customer.customerInfo.name}
-            </div>
-        )
-        const selectedCustomer = this.state.selectedCustomer;
-        const webChatInstances = this.state.customers.map(customer =>
-            <div
-                style={{ visibility: customer === selectedCustomer ? 'visible' : 'hidden' }}
-                key={customer.customerInfo.id}
-            >
-                {customer.webChatInstance}
-            </div>
-        )
-
         return (
             <div className='agent-dashboard'>
-                <div className='left-panel'>
-                    {conversationHeaders}
-                </div>
-                <div className='right-panel'>
-                    {webChatInstances}
-                </div>
+                <ConversationHeaders conversations={  this.state.conversations } selectedConversation={ this.state.selectedConversation } handleConversationChange={ this.handleConversationChange }/>
+                <WebChats conversation={ this.state.conversations } selectedConversation={ this.state.selectedConversation }/>
             </div>
         );
     }

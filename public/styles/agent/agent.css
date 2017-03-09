@@ -1,0 +1,41 @@
+.agent-dashboard{
+    width:100vw;
+    height:100vh
+}
+
+.left-panel {
+    width: 20%;
+    float: left;
+    height:100%;
+    padding:12px;
+}
+
+.conversation-header{
+    cursor: pointer;
+    border: solid 1px #3a96dd;
+    padding:3px;
+    margin:2px;
+    color:#3a96dd;
+    font-size: 16px;
+}
+
+.selected{
+    color:white;
+    background:#3a96dd;
+}
+
+ .wc-chatview-panel {
+    border: 1px solid #333;
+    float: right;
+    height: 600px;
+    width: 460px;
+    margin: 20px 320px;
+}
+.wc-wide .wc-chatview-panel {
+    width: 768px;
+}
+.wc-narrow .wc-chatview-panel {
+    width: 320px;
+}
+
+

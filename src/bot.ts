@@ -47,7 +47,9 @@ export default class bot_handler {
                 let customerAddress = ev.value.customerConversationId;
                 queue.update(customerAddress, agentAddress, ev.address);
                 queue.get(customerAddress).messages.forEach((msg) => {
-                    ev.send(msg);
+                    this.bot.send(
+                        msg.address(ev.address)
+                    );
                 });
             }
         });

@@ -2,7 +2,7 @@ import * as express from 'express';
 import BotHandler from './bot';
 import queue from './lib/queue';
 import config from './config/';
-import MutableConfig from "./config/mutable_config";
+import MutableConfig from "./config/MutableConfig";
 const app = express();
 
 const bot = new BotHandler(config('master'));

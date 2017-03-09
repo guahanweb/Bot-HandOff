@@ -63,7 +63,7 @@ const ConversationHeaders = (props: {
 }) =>
     <div className='left-panel'>{
         props.conversations.map(conversation =>
-            <ConversationHeader conversation={ conversation } selected={ conversation == props.selectedConversation } handleConversationChange={ props.handleConversationChange }/>
+            <ConversationHeader conversation={conversation} selected={conversation == props.selectedConversation} handleConversationChange={props.handleConversationChange} key={conversation.customerInfo.id} />
         )
     }</div>
 
@@ -73,22 +73,21 @@ const ConversationHeader = (props: {
     handleConversationChange: (string) => void
 }) =>
     <div
-        className={ 'conversation-header ' + (props.selected ? 'selected' : '') }
-        onClick={ () => props.handleConversationChange(props.conversation.customerInfo.id) }
-        key={ props.conversation.customerInfo.id }
+        className={'conversation-header ' + (props.selected ? 'selected' : '')}
+        onClick={() => props.handleConversationChange(props.conversation.customerInfo.id)}
+        key={props.conversation.customerInfo.id}
     >
-        { props.conversation.customerInfo.name }
+        {props.conversation.customerInfo.name}
     </div>;
 
 const WebChat = (props: {
     conversation: Conversation,
     selected: boolean
 }) =>
-    <div>
-        style={ { visibility: props.selected ? 'visible' : 'hidden' } }
-        key={ props.conversation.customerInfo.id }
+    <div
+        style={{ visibility: props.selected ? 'visible' : 'hidden' }}
     >
-        { props.conversation.webChatInstance }
+        {props.conversation.webChatInstance}
     </div>;
 
 const WebChats = (props: {
@@ -97,7 +96,7 @@ const WebChats = (props: {
 }) =>
     <div className='right-panel'>{
         props.conversation.map(conversation =>
-            <WebChat conversation={ conversation } selected={ conversation == props.selectedConversation } />
+            <WebChat conversation={conversation} selected={conversation == props.selectedConversation} key={'WebChat' + conversation.customerInfo.id} />
         )
     }</div>;
 
@@ -111,11 +110,11 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
     }
 
     componentDidMount() {
-        pendingConversation$(this.props).subscribe(customer => {
-            let state: any = { customers: [...this.state.conversations, customer] };
+        pendingConversation$(this.props).subscribe(conversation => {
+            let state: any = { conversations: [...this.state.conversations, conversation] };
 
             if (this.state.conversations.length == 0) {
-                state.selectedCustomer = customer;
+                state.selectedConversation = conversation;
             }
             this.setState(state);
         });
@@ -128,8 +127,14 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
     render() {
         return (
             <div className='agent-dashboard'>
-                <ConversationHeaders conversations={  this.state.conversations } selectedConversation={ this.state.selectedConversation } handleConversationChange={ this.handleConversationChange }/>
-                <WebChats conversation={ this.state.conversations } selectedConversation={ this.state.selectedConversation }/>
+                {this.state.conversations.length == 0 ?
+                    <div>No pending customers</div>
+                    :
+                    <div>
+                        <ConversationHeaders conversations={this.state.conversations} selectedConversation={this.state.selectedConversation} handleConversationChange={this.handleConversationChange.bind(this)} />
+                        <WebChats conversation={this.state.conversations} selectedConversation={this.state.selectedConversation} />
+                    </div>
+                }
             </div>
         );
     }

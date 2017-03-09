@@ -109,6 +109,10 @@ class Queue {
             return item.state === ConversationState.Waiting;
         });
     }
+
+    getAllConversations() {
+        return this.queue;
+    }
 }
 
 export default new Queue();

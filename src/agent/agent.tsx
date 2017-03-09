@@ -124,7 +124,7 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
     render() {
         return (
             <Provider store={store}>
-                <div className='agent-dashboard'>
+                <div className='agent-dashboard wc-app'>
                     <ConversationHeaders/>
                     <WebChats/>
                 </div>

@@ -31,7 +31,6 @@ export default function make_request(knowledge_bank, message, session){
 }
 
 function createCard(data) {
-    return function(session){
     var answers = data.answers.map(x => {
             return _.unescape(x.answer);
         }).map(x => {
@@ -46,6 +45,5 @@ function createCard(data) {
     return new builder.Message()
         .attachmentLayout(builder.AttachmentLayout.carousel)
             .attachments(answers);
-    }
 }
 

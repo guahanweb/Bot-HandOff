@@ -21,22 +21,6 @@ export default class Handoff {
         return {
             botbuilder: (session: builder.Session, next: Function) => {
                 // Pass incoming messages to routing method
-                if(true){
-                    if(session.message.type && session.message.text.startsWith('directline')){
-                        var event = session.message as any;
-
-                        event.type = 'event';
-                        event.name = 'connect_agent';
-                        if(event.value){
-                            event.value.customerConversationId = event.text;
-                        } else {
-                            event.value = {};
-                            event.value.customerConversationId = event.text;
-                        }
-                        session.message = event;
-                    }
-                }
-
                 if (session.message.type === 'message') {
                     this.routeMessage(session, next);
                 } else if (session.message.type === 'event') {
@@ -45,12 +29,13 @@ export default class Handoff {
                     if (event.name === 'connect_agent') {
                         let agentAddress = session.message.address.channelId + '/' + session.message.address.conversation.id;
                         let customerAddress = session.message.text;
-                        queue.update(event.value.customerConversationId, agentAddress, session.message.address, session);
+                        queue.update(event.value.customerConversationId, agentAddress, session.message.address);
                         queue.get(customerAddress).messages.forEach((msg) => {
-                            session.send(msg(session));
+                            session.send(msg);
                         });
                     }
                     // the above logic will need to move here when the UI sends a real event payload
+
                 }
             },
             send: (event: builder.IEvent, next: Function) => {
@@ -69,13 +54,9 @@ export default class Handoff {
         } else {
             // customer
             let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
-            let msg = session.message.text;
-            var msg_builder = function(session) {
-                return new builder.Message(session)
-                            .text(msg);
-            };
 
-            queue.add(customerConversationId, msg_builder, session.message.address);
+            var msg = new builder.Message().text(session.message.text);
+            queue.add(customerConversationId, msg, session.message.address);
 
             let conversation = queue.get(customerConversationId);
             if (conversation.agentAddress !== null) {
@@ -89,31 +70,7 @@ export default class Handoff {
         }
         return next();
     }
-/*
-    private old_routeMessage(
-        session: builder.Session,
-        next: Function
-    ) {
-        if (this.isAgent(session)) {
-            this.routeAgentMessage(session)
-        } else {
-            let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
-            queue.add(customerConversationId, session.message.text, null);
-
-            let conversation = queue.get(customerConversationId);
-            if (conversation.agentAddress !== null) {
-                // send to agent
-                this.bot.send(
-                    new builder.Message()
-                        .address(conversation.agentAddress)
-                        .text(session.message.text)
-                );
-            }
-
-            this.routeCustomerMessage(session, next);
-        }
-    }
- */
+    
     private routeAgentMessage(session: builder.Session) {
         const message = session.message;
         const conversation = this.getConversation({ agentConversationId: message.address.conversation.id });

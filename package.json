@@ -31,6 +31,7 @@
     "@types/node": "^6.0.59",
     "@types/react": "^15.0.14",
     "@types/react-dom": "^0.14.23",
+    "@types/react-redux": "4.4.37",
     "nodemon": "^1.11.0",
     "npm-run-all": "^4.0.2",
     "source-map-loader": "^0.1.6",

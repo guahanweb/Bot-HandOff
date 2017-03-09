@@ -10,7 +10,7 @@ import ConversationState from '../framework/enum/ConversationState';
  * @param session 
  * @param suggestion The card or suggested response for the agent to approve/deny
  */
-export default function askAgent(bot: builder.UniversalBot, session, suggestion: Function) {
+export default function askAgent(bot: builder.UniversalBot, session, suggestion: builder.Message) {
     return new Promise((resolve, reject) => {
         let customerConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
         let conversation = queue.get(customerConversationId);
@@ -22,9 +22,11 @@ export default function askAgent(bot: builder.UniversalBot, session, suggestion:
         }
         queue.await(customerConversationId, resolve, reject); // update the pending promise for resolution
 
+        
         if (conversation.agentAddress !== null) {
             // send to agent
-            bot.send(suggestion(conversation.agentSession));
+            suggestion = suggestion.address(conversation.agentAddress);
+            bot.send(suggestion);
         }
         
         // agent will get queued text whenever they connect

@@ -1,11 +1,15 @@
 import config from '../config/';
-import logDialog from '../utils/logDialog';
+import logDialog from '../utils/logDialog'; 
+import checkState from '../utils/checkCustomerState';
 
 export default function accountDialog(dialog){
     dialog.matches('Greeting', [
         function(session, args, next) {
-            var botRes = 'Hello there! How may I help you?';
-            session.send(botRes);
+            if(checkState(session)){
+                var botRes = 'Hello there! How may I help you?';
+                logDialog(session, botRes);
+                session.send(botRes);
+            }
         }
     ]);
 }

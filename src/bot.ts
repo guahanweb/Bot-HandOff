@@ -13,6 +13,8 @@ import ConversationState from './framework/enum/ConversationState';
 import Promise = require('bluebird');
 
 import queue from './lib/queue';
+import checkState from './utils/checkCustomerState';
+import logDialog from './utils/logDialog';
 
 export default class bot_handler {
 
@@ -48,9 +50,10 @@ export default class bot_handler {
                 let customerAddress = ev.value.customerConversationId;
                 queue.update(customerAddress, agentAddress, ev.address);
 
-                let allMsgs: builder.IMessage[] = queue.get(customerAddress).messages.map((item) => {
+                var allMsgs: builder.IMessage[] = queue.get(customerAddress).messages.map((item) => {
                     return item.address(ev.address).toMessage();
                 });
+                
                 this.bot.send(allMsgs);
                 queue.setState(customerAddress, ConversationState.Agent);
             }
@@ -99,12 +102,18 @@ export default class bot_handler {
 
         var bot = this.bot;
         this.dialog.onDefault(function(session, args, next){
-            var msg = new builder.Message().text('[BOT] no suggestions available');
-            askAgent(bot, session, msg).then(response => {
-                session.send(response);
-            }).catch(err => {
-                session.send(err);
-            });
+            var txt = '[BOT] no suggestions available';
+            var msg = new builder.Message().text(txt);
+
+            if(checkState(session)){
+                askAgent(bot, session, msg).then(response => {
+                    session.send(response);
+                }).catch(err => {
+                    session.send(err);
+                });
+            } else {
+                logDialog(session, txt);
+            }
         });
 
     }

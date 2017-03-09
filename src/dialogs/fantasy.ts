@@ -1,6 +1,7 @@
 import config from '../config/';
 import checkQNA from '../utils/checkQNA';
 import askAgent from '../utils/askAgent';
+import checkState from '../utils/checkCustomerState';
 
 const fantasy = config('QnA').fantasy;
 

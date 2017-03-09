@@ -32,9 +32,7 @@ export default class bot_handler {
 
         this.bot = new builder.UniversalBot(this.connector);
 
-        // replace this function with custom login/verification for agents
-        this.isAgent = (session: builder.Session) =>
-            session.message.user.name.startsWith("Agent");
+        this.isAgent = (session: builder.Session) => session.privateConversationData.isAgent === true;
         
         this.handoff = new Handoff(this.bot, this.isAgent);
         
@@ -44,6 +42,12 @@ export default class bot_handler {
 
         this.bot.on('event', (ev) => {
             if (ev.name === 'connect_agent') {
+                this.bot.loadSession(ev.address, (err, session: builder.Session) => {
+                    if (session) {
+                        session.privateConversationData.isAgent = true;
+                        session.save();
+                    }
+                });
                 let agentAddress = ev.address.channelId + '/' + ev.address.conversation.id;
                 let customerAddress = ev.value.customerConversationId;
                 queue.update(customerAddress, agentAddress, ev.address);

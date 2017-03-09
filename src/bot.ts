@@ -7,7 +7,9 @@ import askAgent from './utils/askAgent';
 
 import accountDialog from './dialogs/account';
 import fantasyDialog from './dialogs/fantasy';
+import watchDialog from './dialogs/watch';
 import greetingDialog from './dialogs/greeting';
+
 import ConversationState from './framework/enum/ConversationState';
 
 import Promise = require('bluebird');
@@ -102,6 +104,7 @@ export default class bot_handler {
 
         accountDialog(this.bot, this.dialog);
         fantasyDialog(this.bot, this.dialog);
+        watchDialog(this.bot, this.dialog);
         greetingDialog(this.dialog);
 
         var bot = this.bot;

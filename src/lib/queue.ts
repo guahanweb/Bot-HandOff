@@ -89,7 +89,7 @@ class Queue {
                 return this.queue[i];
             }
         }
-        return null;        
+        return null;
     }
 
     await(customerConversationId: string, resolve: Function, reject: Function) {

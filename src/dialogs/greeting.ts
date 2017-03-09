@@ -8,6 +8,8 @@ export default function accountDialog(dialog){
             if(checkState(session)){
                 var botRes = 'Hello there! How may I help you?';
                 logDialog(session, botRes);
+
+                session.sendTyping();
                 session.send(botRes);
             }
         }

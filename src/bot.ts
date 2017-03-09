@@ -4,8 +4,10 @@ import message from './lib/messages';
 import commandsMiddleware from './middleware/commands';
 
 import askAgent from './utils/askAgent';
+
 import accountDialog from './dialogs/account';
 import fantasyDialog from './dialogs/fantasy';
+import greetingDialog from './dialogs/greeting';
 
 import Promise = require('bluebird');
 
@@ -61,6 +63,7 @@ export default class bot_handler {
             if (this.isAgent(session)) {
                 let agentConversationId = session.message.address.channelId + '/' + session.message.address.conversation.id;
                 let customer = queue.getCustomerByAgent(agentConversationId);
+                
                 bot.send(
                     new builder.Message()
                         .address(customer.customerAddress)
@@ -77,11 +80,12 @@ export default class bot_handler {
 
         accountDialog(this.bot, this.dialog);
         fantasyDialog(this.bot, this.dialog);
+        greetingDialog(this.dialog);
 
         var bot = this.bot;
         this.dialog.onDefault(function(session, args, next){
-            var msg = session.message.text;
-            askAgent(bot, session, function(session){return new builder.Message(session).text(msg);}).then(response => {
+            var msg = new builder.Message().text(session.message.text);
+            askAgent(bot, session, msg).then(response => {
                 session.send(response);
             }).catch(err => {
                 session.send(err);

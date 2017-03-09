@@ -117,12 +117,10 @@ class AgentDashboard extends React.Component<ChatProps, AgentState> {
                 state.selectedConversation = conversation;
             }
             this.setState(state);
-            console.log("rx loop", conversation.customerInfo.id, this.state);
         });
     }
 
     handleConversationChange(id) {
-        console.log(this.state);
         this.setState({ selectedConversation: this.state.conversations.find(customer => customer.customerInfo.id === id) });
     }
 

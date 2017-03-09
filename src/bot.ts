@@ -11,6 +11,7 @@ import watchDialog from './dialogs/watch';
 import greetingDialog from './dialogs/greeting';
 
 import ConversationState from './framework/enum/ConversationState';
+import MutableConfig from './config/MutableConfig'
 
 import Promise = require('bluebird');
 

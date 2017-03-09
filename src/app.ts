@@ -2,7 +2,7 @@ import * as express from 'express';
 import BotHandler from './bot';
 import queue from './lib/queue';
 import config from './config/';
-
+import MutableConfig from "./config/MutableConfig";
 const app = express();
 
 const bot = new BotHandler(config('master'));
@@ -17,6 +17,15 @@ app.listen(server.port, server.host, () => {
 app.get('/pending', (req, res) => {
     res.send({
         customers: queue.getPendingCustomers()
+    });
+});
+
+app.get('/configs', (req, res) => {
+    let cfg = MutableConfig.getInstance() as Object
+    console.log("received config change: " + req.query);
+    Object.assign(cfg, req.query)
+    res.send({
+        "config" : cfg
     });
 });
 

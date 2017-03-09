@@ -9,6 +9,7 @@ import accountDialog from './dialogs/account';
 import fantasyDialog from './dialogs/fantasy';
 import greetingDialog from './dialogs/greeting';
 import ConversationState from './framework/enum/ConversationState';
+import MutableConfig from './config/MutableConfig'
 
 import Promise = require('bluebird');
 
